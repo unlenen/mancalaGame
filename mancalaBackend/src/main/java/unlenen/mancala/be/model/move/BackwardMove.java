@@ -40,6 +40,11 @@ public class BackwardMove extends AbstractMove {
     }
 
     @Override
+    public PlayerBoard getOtherPlayerBoard() {
+        return mancalaBoard.getBoards().get(Player.TWO);
+    }
+
+    @Override
     public boolean isBoardEnd() {
         return getPitId() < 0;
     }
@@ -61,6 +66,5 @@ public class BackwardMove extends AbstractMove {
         setPitId(getPitId() + getDirection());
         return this;
     }
-    
-    
+
 }

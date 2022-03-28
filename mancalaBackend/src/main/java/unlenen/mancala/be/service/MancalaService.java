@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import unlenen.mancala.be.config.GameConfig;
 import unlenen.mancala.be.constant.GameState;
+import unlenen.mancala.be.constant.Player;
 import unlenen.mancala.be.exception.GameEndedInADrawException;
 import unlenen.mancala.be.exception.GameException;
 import unlenen.mancala.be.exception.GameSessionCompletedException;
@@ -101,27 +102,33 @@ public class MancalaService {
             logger.debug("[NewMove][Start] pitId:" + move + ", board:" + mancalaBoard);
         }
 
-        for (int stone = currentStoneSize; stone > 0; stone--) {
+        for (int stoneId = currentStoneSize; stoneId > 0; stoneId--) {
             move = move.nextMove();
+
             if (move.isNextPitTreasure()) {
-                mancalaBoard.getCurrentPlayerBoard().addToTreasure(1);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("[NewMove][Action][Treasure] pitId:" + move + ", stone:" + stone + ", board:" + mancalaBoard);
-                }
-                if (stone == 1) {
-                    mancalaBoard.setNextPlayer(mancalaBoard.getCurrentPlayer());
+                if (addStoneToTreasure(mancalaBoard, move, stoneId)) {
                     break;
                 }
+
+                //We have more stones than one
                 move = move.nextMove();
                 continue;
             }
+
+            //If pit id is not in pit pool range make a new movement
             if (move.getPitId() >= mancalaBoard.getPitSize() || move.getPitId() < 0) {
                 move = move.nextMove();
             }
-            move.getPlayerBoard().addStone(move.getPitId());
-            if (logger.isDebugEnabled()) {
-                logger.debug("[NewMove][Action] pitId:" + move + ", stone:" + stone + ", board:" + mancalaBoard);
+
+            // If next pit is empty and it is our last stone
+            if (stoneId == 1
+                    && move.getPlayerBoard().getStoneSize(move.getPitId()) == 0
+                    && move.getPlayerBoard().getPlayer() == mancalaBoard.getCurrentPlayer()) {
+                captureOtherPlayerStones(move, move.getPitId(), stoneId, mancalaBoard);
+            } else {
+                regularMovement(move, stoneId, mancalaBoard);
             }
+
         }
 
         onMoveCompleted(mancalaBoard);
@@ -129,6 +136,35 @@ public class MancalaService {
             logger.info("[NewMove][Complete] pitId:" + move + ", board:" + mancalaBoard);
         }
         return mancalaBoard;
+    }
+
+    private boolean addStoneToTreasure(MancalaBoard mancalaBoard, AbstractMove move, int stone) {
+        mancalaBoard.getCurrentPlayerBoard().addToTreasure(1);
+        if (logger.isDebugEnabled()) {
+            logger.debug("[NewMove][Action][Treasure] pitId:" + move + ", stone:" + stone + ", board:" + mancalaBoard);
+        }
+        if (stone == 1) {
+            mancalaBoard.setNextPlayer(mancalaBoard.getCurrentPlayer());
+            return true;
+        }
+        return false;
+    }
+
+    private void regularMovement(AbstractMove move, int stone, MancalaBoard mancalaBoard) {
+        // Normal game movement
+        move.getPlayerBoard().addStone(move.getPitId());
+        if (logger.isDebugEnabled()) {
+            logger.debug("[NewMove][Action] pitId:" + move + ", stone:" + stone + ", board:" + mancalaBoard);
+        }
+    }
+
+    private void captureOtherPlayerStones(AbstractMove move, int pitId, int stone, MancalaBoard mancalaBoard) {
+        int otherPlayerStones = move.getOtherPlayerBoard().getStoneSize(pitId);
+        move.getPlayerBoard().addToTreasure(1 + otherPlayerStones);
+        move.getOtherPlayerBoard().clearPit(pitId);
+        if (logger.isDebugEnabled()) {
+            logger.debug("[NewMove][Action][Capture] pitId:" + move + ", stone:" + stone + ",nextPitSize:" + otherPlayerStones + ", board:" + mancalaBoard);
+        }
     }
 
     private String createSessionId() {

@@ -64,6 +64,10 @@ public class PlayerBoard {
         return treasure + pitScore;
     }
 
+    public int getStoneSize(int pitId) {
+        return pits[pitId];
+    }
+
     @JsonIgnore
     public boolean isCompleted() {
         for (int i = 0; i < pits.length; i++) {

@@ -69,6 +69,26 @@ public class GameTest {
     }
 
     @Test
+    public void test_captureStones() throws GameException {
+        String sessionId = createNewGame();
+        MancalaBoard mancalaBoard = mancalaService.getBoard(sessionId);
+        PlayerBoard boardOne = mancalaBoard.getCurrentPlayerBoard();
+        PlayerBoard boardTwo = mancalaBoard.getBoards().get(Player.TWO);
+
+        int emptyPit = 4;
+        int oneStonePit = 5;
+
+        boardOne.clearPit(oneStonePit);
+        boardOne.clearPit(emptyPit);
+        boardOne.addStone(oneStonePit);
+
+        mancalaBoard = mancalaService.newMove(sessionId, oneStonePit);
+        assert boardOne.getTreasure() == 7
+                && boardOne.getStoneSize(emptyPit) == 0
+                && boardTwo.getStoneSize(emptyPit) == 0;
+    }
+
+    @Test
     public void test_turnChanges() throws GameException {
         String sessionId = createNewGame();
         MancalaBoard mancalaBoard = mancalaService.newMove(sessionId, 0);
@@ -104,7 +124,9 @@ public class GameTest {
         boardOne.addToTreasure(36);
         boardOne.addStone(0);
         mancalaBoard = mancalaService.newMove(sessionId, 0);
-        assert mancalaBoard.getGameState() == GameState.COMPLETED && mancalaBoard.getWinnerPlayer() == Player.ONE && boardOne.getTreasure() == 37;
+        assert mancalaBoard.getGameState() == GameState.COMPLETED
+                && mancalaBoard.getWinnerPlayer() == Player.ONE
+                && boardOne.getTreasure() == 37;
     }
 
     @Test

@@ -40,6 +40,11 @@ public class ForwardMove extends AbstractMove {
     }
 
     @Override
+    public PlayerBoard getOtherPlayerBoard() {
+        return mancalaBoard.getBoards().get(Player.ONE);
+    }
+
+    @Override
     public boolean isBoardEnd() {
         return getPitId() >= getPitSize();
     }

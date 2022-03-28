@@ -53,6 +53,13 @@ public abstract class AbstractMove {
      */
     public abstract PlayerBoard getPlayerBoard();
 
+    /**
+     * Gets the other player board
+     *
+     * @return PlayBoard
+     */
+    public abstract PlayerBoard getOtherPlayerBoard();
+
     public Player getPlayer() {
         return getPlayerBoard().getPlayer();
     }
