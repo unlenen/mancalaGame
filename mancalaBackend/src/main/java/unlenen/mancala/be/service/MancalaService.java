@@ -29,6 +29,7 @@ import unlenen.mancala.be.exception.GameSessionCompletedException;
 import unlenen.mancala.be.exception.UnvalidMovementException;
 import unlenen.mancala.be.model.MancalaBoard;
 import unlenen.mancala.be.model.PlayerBoard;
+import unlenen.mancala.be.model.move.AbstractMove;
 import unlenen.mancala.be.repository.MancalaRepository;
 
 /**
@@ -60,72 +61,59 @@ public class MancalaService {
         return mancalaRepository.getBySessionId(sessionId);
     }
 
-    private String createSessionId() {
-        return UUID.randomUUID().toString();
-    }
-
     public MancalaBoard newMove(String sessionId, int pitId) throws GameException {
         MancalaBoard mancalaBoard = mancalaRepository.getBySessionId(sessionId);
         validatePit(mancalaBoard, pitId);
 
-        PlayerBoard currentBoard = mancalaBoard.getCurrentPlayerBoard();
         int currentStoneSize = mancalaBoard.getCurrentStoneSize(pitId);
         mancalaBoard.getCurrentPlayerBoard().clearPit(pitId);
         mancalaBoard.setNextPlayer(mancalaBoard.getCurrentPlayer().getOtherPlayer());
-        int direction = (mancalaBoard.getCurrentPlayer() == Player.ONE ? -1 : 1);
+
+        AbstractMove move = AbstractMove.createMove(mancalaBoard, pitId);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("[NewMove][Start] pitId:[" + (currentBoard.getPlayer()) + "/" + pitId + "], board:" + mancalaBoard);
+            logger.debug("[NewMove][Start] pitId:" + move + ", board:" + mancalaBoard);
         }
 
-        boolean isNextPitTreasure = false;
-
         for (int stone = currentStoneSize; stone > 0; stone--) {
-            isNextPitTreasure = false;
-            if (pitId >= mancalaBoard.getPitSize() - 1 && currentBoard.getPlayer() == Player.TWO) {
-                direction = -1;
-                currentBoard = mancalaBoard.getBoards().get(Player.ONE);
-                pitId = mancalaBoard.getPitSize() - 1;
-                if (mancalaBoard.getCurrentPlayer() == Player.TWO) { // PlayerTwo reached to treasure 
-                    isNextPitTreasure = true;
-                    pitId = mancalaBoard.getPitSize();
-                }
-            } else if (pitId <= 0 && currentBoard.getPlayer() == Player.ONE) {
-                direction = +1;
-                currentBoard = mancalaBoard.getBoards().get(Player.TWO);
-                pitId = 0;
-                if (mancalaBoard.getCurrentPlayer() == Player.ONE) { // PlayerOne reached to treasure
-                    isNextPitTreasure = true;
-                    pitId = -1;
-                }
-            } else {  // Normal ClockWise cycle
-                pitId = pitId + direction;
-            }
-
-            if (isNextPitTreasure) {
+            move = move.nextMove();
+            if (move.isNextPitTreasure()) {
                 mancalaBoard.getCurrentPlayerBoard().addToTreasure(1);
                 if (logger.isDebugEnabled()) {
-                    logger.debug("[NewMove][Action][Treasure] pitId:[" + (currentBoard.getPlayer()) + "/" + pitId + "], stone:" + stone + ", board:" + mancalaBoard + " , Treasure:" + isNextPitTreasure);
+                    logger.debug("[NewMove][Action][Treasure] pitId:" + move + ", stone:" + stone + ", board:" + mancalaBoard);
                 }
                 if (stone == 1) {
                     mancalaBoard.setNextPlayer(mancalaBoard.getCurrentPlayer());
                     break;
                 }
+                move = move.nextMove();
                 continue;
             }
-
-            currentBoard.addStone(pitId);
+            if (move.getPitId() >= mancalaBoard.getPitSize() || move.getPitId() < 0) {
+                move = move.nextMove();
+            }
+            move.getPlayerBoard().addStone(move.getPitId());
             if (logger.isDebugEnabled()) {
-                logger.debug("[NewMove][Action] pitId:[" + (currentBoard.getPlayer()) + "/" + pitId + "], stone:" + stone + ", board:" + mancalaBoard + " , Treasure:" + isNextPitTreasure);
+                logger.debug("[NewMove][Action] pitId:" + move + ", stone:" + stone + ", board:" + mancalaBoard);
             }
         }
 
         onMoveCompleted(mancalaBoard);
-
         if (logger.isInfoEnabled()) {
-            logger.info("[NewMove][Complete] pitId pitId:[" + (currentBoard.getPlayer()) + "/" + pitId + "], board:" + mancalaBoard);
+            logger.info("[NewMove][Complete] pitId:" + move + ", board:" + mancalaBoard);
         }
         return mancalaBoard;
+    }
+
+    private String createSessionId() {
+        return UUID.randomUUID().toString();
+    }
+
+    private void onMoveCompleted(MancalaBoard mancalaBoard) throws GameEndedInADrawException {
+        mancalaBoard.onMoveCompleted();
+        if (mancalaBoard.isGameCompleted()) {
+            mancalaBoard.onGameCompleted(mancalaBoard.findWinner());
+        }
     }
 
     private void validatePit(MancalaBoard mancalaBoard, int pitId) throws GameException {
@@ -141,10 +129,4 @@ public class MancalaService {
         }
     }
 
-    private void onMoveCompleted(MancalaBoard mancalaBoard) throws GameEndedInADrawException {
-        mancalaBoard.onMoveCompleted();
-        if (mancalaBoard.isGameCompleted()) {
-            mancalaBoard.onGameCompleted(mancalaBoard.findWinner());
-        }
-    }
 }
