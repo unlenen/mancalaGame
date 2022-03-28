@@ -22,13 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import unlenen.mancala.be.config.GameConfig;
 import unlenen.mancala.be.constant.GameState;
-import unlenen.mancala.be.constant.Player;
 import unlenen.mancala.be.exception.GameEndedInADrawException;
 import unlenen.mancala.be.exception.GameException;
 import unlenen.mancala.be.exception.GameSessionCompletedException;
+import unlenen.mancala.be.exception.GameSessionNotFoundException;
 import unlenen.mancala.be.exception.UnvalidMovementException;
 import unlenen.mancala.be.model.MancalaBoard;
-import unlenen.mancala.be.model.PlayerBoard;
 import unlenen.mancala.be.model.move.AbstractMove;
 import unlenen.mancala.be.repository.MancalaRepository;
 
@@ -47,6 +46,11 @@ public class MancalaService {
 
     Logger logger = LoggerFactory.getLogger(MancalaService.class);
 
+    /**
+     * Create a new Mancala board on repository with a sessionId
+     *
+     * @return New Game Session Id (String)
+     */
     public String createNewGame() {
         String sessionId = createSessionId();
         MancalaBoard mancalaBoard = new MancalaBoard(sessionId, gameConfig.getPitSize(), gameConfig.getStoneSize());
@@ -57,10 +61,32 @@ public class MancalaService {
         return sessionId;
     }
 
+    /**
+     * Returns the Mancala board matchs with given session Id
+     *
+     * @param sessionId : Game Session Id
+     * @return : Mancala Board Object
+     * @throws GameSessionNotFoundException : When no mancala board found with
+     * given session Id
+     */
     public MancalaBoard getBoard(String sessionId) throws GameException {
         return mancalaRepository.getBySessionId(sessionId);
     }
 
+    /**
+     * Makes a move on given pitId on board which is related with sessionId
+     *
+     * @param sessionId : Game Session Id
+     * @param pitId : Pit Id to start ( current Player knowledge is inside of
+     * mancala board )
+     * @return : Returns updated mancala board after move on given pit
+     * @throws GameSessionNotFoundException : When no mancala board found with
+     * @throws UnvalidMovementException : When pit is empty or not in pit range
+     * (0,5)
+     * @throws GameEndedInADrawException : Informs game is ended with a draw
+     * @throws GameSessionCompletedException : Informs game is already ended. No
+     * new move is acceptable
+     */
     public MancalaBoard newMove(String sessionId, int pitId) throws GameException {
         MancalaBoard mancalaBoard = mancalaRepository.getBySessionId(sessionId);
         validatePit(mancalaBoard, pitId);

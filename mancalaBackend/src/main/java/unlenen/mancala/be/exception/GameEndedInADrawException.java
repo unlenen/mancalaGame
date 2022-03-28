@@ -16,6 +16,7 @@
 package unlenen.mancala.be.exception;
 
 /**
+ * Throws when game is ended with a draw
  *
  * @author Nebi Volkan UNLENEN(unlenen@gmail.com)
  */

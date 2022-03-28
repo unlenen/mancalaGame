@@ -39,8 +39,18 @@ public abstract class AbstractMove {
         this.pitSize = mancalaBoard.getPitSize();
     }
 
+    /**
+     * Gets the game direction
+     *
+     * @return -1 or 1
+     */
     public abstract int getDirection();
 
+    /**
+     * Gets the current player board
+     *
+     * @return PlayBoard
+     */
     public abstract PlayerBoard getPlayerBoard();
 
     public Player getPlayer() {
@@ -49,10 +59,27 @@ public abstract class AbstractMove {
 
     public abstract boolean isBoardEnd();
 
+    /**
+     * Checks next pit is a treasure for current player
+     *
+     * @return : True if next pit is treasure
+     */
     public abstract boolean isNextPitTreasure();
 
+    /**
+     * Calculates the next move accoring to current situations
+     *
+     * @return BackwardMove or ForwardMove object
+     */
     public abstract AbstractMove nextMove();
 
+    /**
+     * Creates a BackwardMove or ForwardMove object according to current Player
+     *
+     * @param mancalaBoard : Mancala Board Object
+     * @param pitId : Pit Id on action
+     * @return BackwardMove or ForwardMove object
+     */
     public static AbstractMove createMove(MancalaBoard mancalaBoard, int pitId) {
         switch (mancalaBoard.getCurrentPlayer()) {
             case ONE: {

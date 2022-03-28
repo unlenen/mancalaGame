@@ -41,14 +41,28 @@ public class MancalaController {
 
     Logger logger = LoggerFactory.getLogger(MancalaController.class);
 
+    /**
+     * Creates a new game and returns session id in MancalaResponse object
+     *
+     * @return MancalaResponse
+     */
     @GetMapping("/start")
     public ResponseEntity<MancalaResponse> createNewGame() {
         String sessionId = mancalaService.createNewGame();
         return new ResponseEntity<>(new MancalaResponse(sessionId), HttpStatus.OK);
     }
 
+    /**
+     * Returns the Mancala Board with given session Id in a MancalaResponse
+     * object with Http.200
+     *
+     * Returns a MancalaResponse object with Http.401 with the reason of error.
+     *
+     * @param sessionId : Game Session Id
+     * @return : MancalaResponse
+     */
     @GetMapping("/board/{sessionId}")
-    public ResponseEntity<MancalaResponse> getBoard(@PathVariable String sessionId) throws GameException {
+    public ResponseEntity<MancalaResponse> getBoard(@PathVariable String sessionId) {
         try {
             MancalaBoard mancalaBoard = mancalaService.getBoard(sessionId);
             return new ResponseEntity<>(new MancalaResponse(sessionId, mancalaBoard), HttpStatus.OK);
@@ -58,6 +72,17 @@ public class MancalaController {
         }
     }
 
+    /**
+     * Makes a move on given pitId on board which is related with sessionId
+     *
+     * @param sessionId : Game Session Id
+     * @param pitId : Pit Id to start ( current Player knowledge is inside of
+     * mancala board )
+     * @return : Returns updated mancala board after move on given pit with HTTP
+     * 200. If an error rises a MancalaResponse object with Http.401 with the
+     * reason of error.
+     *
+     */
     @GetMapping("/move/{sessionId}/{pitId}")
     public ResponseEntity<MancalaResponse> newMove(@PathVariable String sessionId, @PathVariable int pitId) {
         try {
