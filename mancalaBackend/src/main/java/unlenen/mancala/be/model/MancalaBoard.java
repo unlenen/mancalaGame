@@ -22,6 +22,7 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import unlenen.mancala.be.constant.GameState;
+import unlenen.mancala.be.exception.GameEndedInADrawException;
 
 /**
  *
@@ -91,6 +92,19 @@ public class MancalaBoard {
         currentPlayer = Player.ONE;
         nextPlayer = Player.TWO;
         gameState = GameState.ACTIVE;
+    }
+
+    public Player findWinner() throws GameEndedInADrawException {
+        int playerOneScore = boards.get(Player.ONE).getTotalStone();
+        int playerTwoScore = boards.get(Player.TWO).getTotalStone();
+        if (playerOneScore > playerTwoScore) {
+            return Player.ONE;
+        } else if (playerOneScore < playerTwoScore) {
+            return Player.TWO;
+        } else {
+            setGameState(GameState.COMPLETED);
+            throw new GameEndedInADrawException(sessionId);
+        }
     }
 
 }

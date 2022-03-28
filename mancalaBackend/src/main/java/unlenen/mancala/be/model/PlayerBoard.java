@@ -49,6 +49,14 @@ public class PlayerBoard {
         pits[pitId] = pits[pitId] + 1;
     }
 
+    public int getTotalStone() {
+        int pitScore = 0;
+        for (int i = 0; i < pits.length; i++) {
+            pitScore += pits[i];
+        }
+        return treasure + pitScore;
+    }
+
     @JsonIgnore
     public boolean isCompleted() {
         for (int i = 0; i < pits.length; i++) {
@@ -70,4 +78,5 @@ public class PlayerBoard {
             pits[column] = stoneSize;
         }
     }
+
 }
