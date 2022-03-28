@@ -22,9 +22,13 @@ function getBoard() {
 }
 
 function sendPlayerMove(pitId) {
-    $.get(URL_MANCALA_API + "/move/" + mancalaGameInfo.sessionId + "/" + pitId, function (result) {
+    request = $.get(URL_MANCALA_API + "/move/" + mancalaGameInfo.sessionId + "/" + pitId);
+    request.done(function (result) {
         mancalaGameInfo.mancalaBoard = result.mancalaBoard;
         drawBoard(mancalaGameInfo.mancalaBoard);
+    });
+    request.fail(function (xhr, statusText, errorThrown) {
+        alert(JSON.parse(xhr.responseText).message);
     });
 }
 
@@ -62,6 +66,11 @@ function bindButtons() {
     $(".pitButton").click(function () {
         id = $(this).find(".pitText").attr("id");
         pitId = id.substr(-1);
+        playerName = id.substr(6, 3);
+        if (mancalaGameInfo.mancalaBoard.currentPlayer != playerName) {
+            alert("It is not your turn");
+            return;
+        }
         sendPlayerMove(pitId);
     });
 }

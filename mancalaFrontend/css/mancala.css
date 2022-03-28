@@ -69,7 +69,7 @@ body{
 }
 
 .board table  {
-    border: 5px solid red;
+   
     margin-left: 2%;
     margin-right: 2%;
     width: 96%;
@@ -79,12 +79,12 @@ body{
     display: none;
 }
 .board .pit{
-    border: 5px solid red;
+  
     width: 12%;
 }
 
 .board .treasure{
-    border: 5px solid red;
+  
     width: 12%;
 }
 
@@ -93,7 +93,7 @@ body{
 }
 
 .boardCenter{
-    border: 5px solid red;
+  
     width: 6%;   
 }
 
