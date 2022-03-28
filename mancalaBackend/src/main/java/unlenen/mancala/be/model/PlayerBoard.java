@@ -37,8 +37,11 @@ public class PlayerBoard {
         initialize(pitSize, stoneSize);
     }
 
-    public void clearPit(int pitId) {
-        pits[pitId] = 0;
+    public void addAllStoneToTreasure() {
+        for (int pitId = 0; pitId < pits.length; pitId++) {
+            addToTreasure(pits[pitId]);
+            clearPit(pitId);
+        }
     }
 
     public void addToTreasure(int stoneSize) {
@@ -47,6 +50,10 @@ public class PlayerBoard {
 
     public void addStone(int pitId) {
         pits[pitId] = pits[pitId] + 1;
+    }
+
+    public void clearPit(int pitId) {
+        pits[pitId] = 0;
     }
 
     public int getTotalStone() {

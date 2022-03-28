@@ -47,6 +47,20 @@ public class MancalaBoard {
     }
 
     @JsonIgnore
+    public Player findWinner() throws GameEndedInADrawException {
+        int playerOneScore = boards.get(Player.ONE).getTotalStone();
+        int playerTwoScore = boards.get(Player.TWO).getTotalStone();
+        if (playerOneScore > playerTwoScore) {
+            return Player.ONE;
+        } else if (playerOneScore < playerTwoScore) {
+            return Player.TWO;
+        } else {
+            setGameState(GameState.COMPLETED);
+            throw new GameEndedInADrawException(sessionId);
+        }
+    }
+
+    @JsonIgnore
     public PlayerBoard getCurrentPlayerBoard() {
         return boards.get(currentPlayer);
     }
@@ -72,6 +86,7 @@ public class MancalaBoard {
     }
 
     public void onGameCompleted(Player winner) {
+        addAllStonesToTreasure();
         setWinnerPlayer(winner);
         setGameState(GameState.COMPLETED);
     }
@@ -85,6 +100,12 @@ public class MancalaBoard {
         return "[MancalaBoard] currentPlayer : " + getCurrentPlayer() + " , " + boards + " , state:" + gameState;
     }
 
+    private void addAllStonesToTreasure() {
+        for (Player player : Player.values()) {
+            boards.get(player).addAllStoneToTreasure();
+        }
+    }
+
     private void initializeBoard(int pitSize, int stoneSize) {
         this.pitSize = pitSize;
         boards.put(Player.ONE, new PlayerBoard(Player.ONE, pitSize, stoneSize));
@@ -92,19 +113,6 @@ public class MancalaBoard {
         currentPlayer = Player.ONE;
         nextPlayer = Player.TWO;
         gameState = GameState.ACTIVE;
-    }
-
-    public Player findWinner() throws GameEndedInADrawException {
-        int playerOneScore = boards.get(Player.ONE).getTotalStone();
-        int playerTwoScore = boards.get(Player.TWO).getTotalStone();
-        if (playerOneScore > playerTwoScore) {
-            return Player.ONE;
-        } else if (playerOneScore < playerTwoScore) {
-            return Player.TWO;
-        } else {
-            setGameState(GameState.COMPLETED);
-            throw new GameEndedInADrawException(sessionId);
-        }
     }
 
 }
